@@ -15,6 +15,6 @@ Gå tillbaka och kör mk_iso.sh och run_bochs.sh(i ordning)
 
 bash mk_iso.sh
 
-bash run_iso.sh
+bash run_bochs.sh
 
 skriv in 'c' och tryck enter i bochs terminalfönster
