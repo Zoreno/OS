@@ -37,6 +37,8 @@ unsigned char keyboard_get_command_return()
 		}
 	
 		data = read_data_port();
+		monitor_write_hex(data);
+		monitor_newline();
 		if(data != 0xFA) break; 
 
 	}
@@ -137,6 +139,42 @@ void keyboard_set_autorepeat_delay_and_repeat_rate(unsigned char delay,
 	keyboard_enc_send_command(data);
 }
 
+void keyboard_enable()
+{
+	keyboard_enc_send_command(0xF4);
+}
+
+void keyboard_disable()
+{
+	keyboard_enc_send_command(0xF5);
+}
+
+void keyboard_resend_last_byte()
+{
+	keyboard_enc_send_command(0xFE);
+}
+
+bool keyboard_restart()
+{
+	keyboard_enc_send_command(0xFF);
+
+	switch(keyboard_get_command_return())
+	{
+	case 0xAA:
+		//Self test passed
+		return true;
+	case 0xFE:
+		return keyboard_restart();
+	case 0xFC:
+	case 0xFD:
+		//Self test not passed (TODO:Kanske hantera kanske)
+		return false;
+	default:
+		//Invalid return code
+		return false;
+	}
+}
+
 static void keyboard_interrupt_handler(registers_t regs)
 {
 	scan_code code  = read_data_port();
@@ -146,11 +184,10 @@ static void keyboard_interrupt_handler(registers_t regs)
 	monitor_newline();
 }
 
+
 void init_keyboard()
 {
 	monitor_writel("Starting to initialize keyboard...");
-
-	keyboard_set_LED(true, true, true);
 
 	monitor_write("Current scan code set:");
 	monitor_write_dec(keyboard_get_current_scan_code_set());
