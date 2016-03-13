@@ -1,13 +1,33 @@
 #include "keyboard.h"
 #include "io-wrapper.h"
 #include "isr.h"
-#include "common.h"
 #include "monitor.h"
 
 #define KBD_DATA_PORT 		0x60
 #define KBD_COMMAND_PORT 	0x64
 
-typedef unsigned char scan_code;
+bool keys[128];
+
+//TODO support for multiple key handlers(requires memory management and linked
+//list or eqvivalent)
+key_pressed_t key_pressed_handler;
+key_typed_t key_typed_handler;
+key_released_t key_released_handler;
+
+//Forward declarations (TODO: Make some/all public (move to .h file))
+unsigned char read_data_port();
+scan_code read_scan_code();
+unsigned char read_keyboard_ctrl_status();
+unsigned char keyboard_get_command_return();
+void keyboard_ctrl_send_command(unsigned char com);
+void keyboard_enc_send_command(unsigned char com);
+void keyboard_set_LED(bool caps, bool scroll, bool num);
+void keyboard_set_alternate_scan_code_set(unsigned char set);
+unsigned char keyboard_get_current_scan_code_set();
+void keyboard_enable();
+void keyboard_disable();
+void keyboard_resend_last_byte();
+bool keyboard_restart();
 
 unsigned char read_data_port()
 {
@@ -175,13 +195,74 @@ bool keyboard_restart()
 	}
 }
 
+void create_key_pressed_event(scan_code code)
+{
+	if(key_pressed_handler != 0)
+	{
+		key_pressed_handler(code);
+	}
+}
+
+void create_key_typed_event(scan_code code)
+{
+	if(key_typed_handler != 0)
+	{
+		key_typed_handler(code);
+	}
+}
+
+void create_key_released_event(scan_code code)
+{
+	if(key_released_handler != 0)
+	{
+		key_released_handler(code);
+	}
+}
+
+void register_key_pressed_handler(key_pressed_t* handler)
+{
+	key_pressed_handler = handler;
+}
+
+void register_key_typed_handler(key_typed_t* handler)
+{
+	key_typed_handler = handler;
+}
+
+void register_key_released_handler(key_released_t* handler)
+{
+	key_released_handler = handler;
+}
+
 static void keyboard_interrupt_handler(registers_t regs)
 {
 	scan_code code  = read_data_port();
 	if(code == 0xFA) return;
+	/*
 	monitor_write("Keyboard interrupt! Scancode: ");
 	monitor_write_hex(code);
 	monitor_newline();
+	*/
+
+	//If msb not set, the key was pressed
+	if((code & 0b10000000) == 0)
+	{
+		if(!keys[code])
+		{
+			monitor_writel("key pressed");
+			create_key_pressed_event(code);
+		}
+		monitor_writel("key typed");
+		create_key_typed_event(code);
+		keys[code] = true;
+	}
+	//else released
+	else
+	{
+		monitor_writel("key released");
+		create_key_released_event(code);
+		keys[(code) & 0x7F] = false;
+	}
 }
 
 

@@ -2,6 +2,15 @@
 
 #include "common.h"
 #include "descriptor_tables.h"
+#include "keyboard.h"
+
+static void key_pressed(scan_code code)
+{
+	monitor_write("main.c registers keypress:");
+	monitor_write_hex(code);
+	monitor_newline();
+}
+
 
 /** kernel_main:
  *  The C entry point of the kernel.
@@ -20,6 +29,8 @@ int kernel_main()
 	asm volatile ("sti");
 
 	monitor_writel("Kernel boot done!");
+
+	register_key_pressed_handler(&key_pressed);
 
 	while(1);
 
