@@ -234,6 +234,17 @@ void register_key_released_handler(key_released_t* handler)
 	key_released_handler = handler;
 }
 
+bool keyboard_is_key_pressed(scan_code code)
+{
+	//Should not exist
+	if(code >= 128)
+	{
+		return false;
+	}
+	return keys[code];
+}
+
+//TODO convert to ascii or implement own key mapping
 static void keyboard_interrupt_handler(registers_t regs)
 {
 	scan_code code  = read_data_port();
@@ -249,22 +260,18 @@ static void keyboard_interrupt_handler(registers_t regs)
 	{
 		if(!keys[code])
 		{
-			monitor_writel("key pressed");
 			create_key_pressed_event(code);
 		}
-		monitor_writel("key typed");
 		create_key_typed_event(code);
 		keys[code] = true;
 	}
 	//else released
 	else
 	{
-		monitor_writel("key released");
 		create_key_released_event(code);
 		keys[(code) & 0x7F] = false;
 	}
 }
-
 
 void init_keyboard()
 {
