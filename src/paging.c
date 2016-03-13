@@ -2,6 +2,8 @@
 #include "kernel_heap.h"
 #include "monitor.h"
 
+extern void loadPageDirectory(unsigned int*);
+extern void enablePaging();
 
 page_directory_t *kernel_directory=0;
 page_directory_t *current_directory=0;
@@ -105,13 +107,13 @@ void initialize_paging()
 	monitor_writel("Creating kernel directory");
 	kernel_directory = (page_directory_t*)kmalloc_a(sizeof(page_directory_t));
 	memset(kernel_directory, 0, sizeof(page_directory_t));
-	kernel_directory->physicalAddr = (unsigned int)kernel_directory->tablesPhysical;
+	current_directory = kernel_directory;
 
 	monitor_writel("Allocating frames");
 	int i = 0;
 	while(i < placement_address)
 	{
-		alloc_frame(get_page(i, 1, kernel_directory), 0,0);
+		alloc_frame(get_page(i, true, kernel_directory), 0,0);
 		i += 0x1000;
 	}
 
@@ -127,16 +129,13 @@ void switch_page_directory(page_directory_t* dir)
 {
 	monitor_write("Moving physical address to cr3: ");
 	current_directory = dir;
-	asm volatile("mov %0, %%cr3":: "r"(dir->physicalAddr));
-	monitor_write_hex(dir->physicalAddr);
+	loadPageDirectory(&dir->tablesPhysical);
+	monitor_write_hex(&dir->tablesPhysical);
 	monitor_newline();
 
-	monitor_writel("Enabling paging in cr0");
-	unsigned int cr0;
-	asm volatile("mov %%cr0, %0": "=r"(cr0));
-	cr0 |= 0x80000000; // Enable paging!
-	asm volatile("mov %0, %%cr0":: "r"(cr0));
-	monitor_writel("Done enabling paging in cr3");
+	monitor_writel("Enabling paging");
+	enablePaging();
+	monitor_writel("Done enabling paging");
 }
 
 page_t* get_page(unsigned int address, bool make, page_directory_t* dir)
@@ -151,7 +150,7 @@ page_t* get_page(unsigned int address, bool make, page_directory_t* dir)
 	else if(make)
 	{
 		unsigned int tmp;
-		dir->tables[table_index] = (page_directory_t*)kmalloc_ap(sizeof(page_table_t), &tmp);
+		dir->tables[table_index] = (page_table_t*)kmalloc_ap(sizeof(page_table_t), &tmp);
 		memset(dir->tables[table_index], 0, 0x1000);
 		dir->tablesPhysical[table_index] = tmp |= 0x7;
 		return &dir->tables[table_index]->pages[address%1024]; 
