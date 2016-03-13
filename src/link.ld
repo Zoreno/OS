@@ -6,12 +6,13 @@ SECTIONS {
     .text ALIGN (0x1000) :   /* align at 4 KB */
     {
         *(.text)             /* all text sections from all files */
-	*(.rodata*)
+	
     }
 
     .data ALIGN (0x1000) :   /* align at 4 KB */
     {
         *(.data)             /* all data sections from all files */
+	*(.rodata*)
     }
 
     .bss ALIGN (0x1000) :    /* align at 4 KB */
@@ -19,4 +20,5 @@ SECTIONS {
         *(COMMON)            /* all COMMON sections from all files */
         *(.bss)              /* all bss sections from all files */
     }
+    end = .; _end = .; __end = .;
 }

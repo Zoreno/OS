@@ -3,6 +3,7 @@
 #include "common.h"
 #include "descriptor_tables.h"
 #include "keyboard.h"
+#include "paging.h"
 
 static void key_pressed(scan_code code)
 {
@@ -25,12 +26,18 @@ int kernel_main()
 
 	init_descriptor_tables();
 	init_keyboard();
+	//initialize_paging();
 
 	asm volatile ("sti");
+
+	//unsigned int *ptr = (unsigned int*)0xA0000000;
+   	//unsigned int do_page_fault = *ptr;
 
 	monitor_writel("Kernel boot done!");
 
 	register_key_pressed_handler(&key_pressed);
+
+	
 
 	while(1);
 

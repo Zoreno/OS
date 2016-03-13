@@ -1,6 +1,6 @@
 
 
-SOURCES= loader.o main.o monitor.o io.o io-wrapper.o serial.o common.o gdt.o descriptor_tables.o isr.o interrupt.o keyboard.o
+SOURCES= loader.o main.o monitor.o io.o io-wrapper.o serial.o common.o gdt.o descriptor_tables.o isr.o interrupt.o keyboard.o kernel_heap.o paging.o
 
 CFLAGS=-m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector 
 LDFLAGS=-Tlink.ld -m elf_i386 -s
