@@ -11,6 +11,7 @@
 int kernel_main()
 {
 	monitor_clear();
+	monitor_set_text_color(COLOR_GREEN);
 	monitor_writel("Kernel boot started...");
 
 	init_descriptor_tables();

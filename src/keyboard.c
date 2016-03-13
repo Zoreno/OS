@@ -119,6 +119,24 @@ unsigned char keyboard_get_current_scan_code_set()
 	return keyboard_get_command_return();
 }
 
+void keyboard_set_autorepeat_delay_and_repeat_rate(unsigned char delay, 
+	unsigned char rate)
+{
+	ASSERT(delay >= 0x1F);
+	ASSERT(rate >= 0x03);
+
+	unsigned char data = delay;
+
+	data |= (rate << 5);
+
+	monitor_write("Autorepeat/delay data:");
+	monitor_write_bin(data);
+	monitor_newline();
+
+	keyboard_enc_send_command(0xF3);
+	keyboard_enc_send_command(data);
+}
+
 static void keyboard_interrupt_handler(registers_t regs)
 {
 	scan_code code  = read_data_port();
@@ -132,10 +150,13 @@ void init_keyboard()
 {
 	monitor_writel("Starting to initialize keyboard...");
 
-	keyboard_set_LED(true,true,true);
+	keyboard_set_LED(true, true, true);
 
-	monitor_write_hex(keyboard_get_current_scan_code_set());
+	monitor_write("Current scan code set:");
+	monitor_write_dec(keyboard_get_current_scan_code_set());
 	monitor_newline();
+
+	keyboard_set_autorepeat_delay_and_repeat_rate(0x1F, 3);
 
 	register_interrupt_handler(IRQ1, &keyboard_interrupt_handler);
 

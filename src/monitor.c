@@ -34,6 +34,7 @@ void scroll()
 		for(i = 0; i < (MONITOR_HEIGHT-1)*MONITOR_WIDTH; ++i)
 		{
 			fb[2*i] = fb[2*(i + MONITOR_WIDTH)];
+			fb[2*i + 1] = fb[2*(i + MONITOR_WIDTH) + 1];
 		}
 		//Insert blank row at bottom
 		for(i = (MONITOR_HEIGHT-1)*MONITOR_WIDTH; i < MONITOR_HEIGHT*MONITOR_WIDTH; ++i)
