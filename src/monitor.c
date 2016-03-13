@@ -9,7 +9,7 @@ unsigned short  cursor_x = 0;
 unsigned short  cursor_y = 0;
 
 //Color behind text
-MONITOR_COLOR back_color = COLOR_BLACK;
+MONITOR_COLOR back_color = COLOR_BLUE;
 //Color of text
 MONITOR_COLOR text_color = COLOR_WHITE;
 
@@ -24,7 +24,7 @@ MONITOR_COLOR text_color = COLOR_WHITE;
  */
 void scroll()
 {
-	unsigned char attributeByte = ((COLOR_BLACK & 0x0F) << 4) | (COLOR_WHITE & 0x0F);
+	unsigned char attributeByte = ((back_color & 0x0F) << 4) | (text_color & 0x0F);
 	unsigned short  blank = 0x20 | (attributeByte << 8);
 
 	if(cursor_y >= MONITOR_HEIGHT)
@@ -126,7 +126,7 @@ void monitor_newline()
  */
 void monitor_clear()
 {
-	unsigned char attributeByte = ((COLOR_BLACK & 0x0F) << 4) | (COLOR_WHITE & 0x0F);
+	unsigned char attributeByte = ((back_color & 0x0F) << 4) | (text_color & 0x0F);
 	unsigned short blank = 0x20;
 
 	int i;

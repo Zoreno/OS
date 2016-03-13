@@ -6,7 +6,7 @@
 
 static void key_pressed(scan_code code)
 {
-	monitor_write("main.c registers keypress:");
+	monitor_write("main.c registers Keypress:");
 	monitor_write_hex(code);
 	monitor_newline();
 }
@@ -19,8 +19,9 @@ static void key_pressed(scan_code code)
  */
 int kernel_main()
 {
+	monitor_set_back_color(COLOR_BLUE);
+	monitor_set_text_color(COLOR_WHITE);
 	monitor_clear();
-	monitor_set_text_color(COLOR_GREEN);
 	monitor_writel("Kernel boot started...");
 
 	init_descriptor_tables();
